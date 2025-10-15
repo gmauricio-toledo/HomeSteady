@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Inventario</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            margin: 12px 0;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .back-btn {
+            background: #6c757d;
+            margin-bottom: 20px;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .item-list {
+            margin-top: 20px;
+        }
+
+        .item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .item-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qty-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #667eea;
+            color: white;
+        }
+
+        .qty-display {
+            min-width: 50px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .calculator-input {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .calculator-input h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .result-box {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .result-box h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .result-box p {
+            font-size: 18px;
+            margin: 8px 0;
+        }
+
+        .winner {
+            background: #fff9c4;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: 600;
+            color: #f57f17;
+        }
+
+        .low-stock {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .edit-mode {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .edit-mode input {
+            flex: 1;
+            margin: 0;
+        }
+
+        .small-btn {
+            padding: 8px 15px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-edit {
+            background: #007bff;
+        }
+
+        .btn-save {
+            background: #28a745;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            padding: 8px 15px;
+            margin-top: 10px;
+        }
+
+        .option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .status-green {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-yellow {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-red {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .days-counter {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .task-done-btn {
+            background: #28a745;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .task-info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .alert-banner {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        .alert-banner h2 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+        }
+
+        .alert-banner p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+
+        .alert-banner button {
+            background: white;
+            color: #f5576c;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .alert-banner button:hover {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Pantalla Principal -->
+        <div id="mainScreen" class="screen active">
+            <h1>🏠 Control de Inventario</h1>
+            
+            <!-- Banner de alertas -->
+            <div id="alertBanner" style="display:none;"></div>
+            
+            <button class="btn btn-primary" onclick="showScreen('inventoryScreen')">
+                📦 Gestión de Inventario
+            </button>
+            <button class="btn btn-success" onclick="showScreen('shoppingScreen')">
+                🛒 Lista de Compras
+            </button>
+            <button class="btn btn-info" onclick="showScreen('calculatorMenuScreen')">
+                🧮 Calculadora de Precios
+            </button>
+            <button class="btn btn-warning" onclick="showScreen('tasksScreen')">
+                📅 Registro de Tareas
+            </button>
+        </div>
+
+        <!-- Gestión de Inventario -->
+        <div id="inventoryScreen" class="screen">
+            <button class="btn back-btn" onclick="showScreen('mainScreen')">← Volver</button>
+            <h1>📦 Inventario</h1>
+            
+            <button class="btn btn-info" onclick="reloadInventory()" style="margin-bottom: 10px;">🔄 Recargar desde Sheets</button>
+            <button class="btn btn-success" onclick="showAddItemForm()">+ Agregar Artículo</button>
+            
+            <div id="addItemForm" style="display:none; margin-top: 20px; background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                <h3>Nuevo Artículo</h3>
+                <label>Nombre del Artículo:</label>
+                <input type="text" id="newItemName" placeholder="Ej: Jabón">
+                <label>Cantidad Actual:</label>
+                <input type="number" id="newItemQty" placeholder="Ej: 5" value="0">
+                <label>Umbral Mínimo:</label>
+                <input type="number" id="newItemThreshold" placeholder="Ej: 2" value="1">
+                <button class="btn btn-success" onclick="addNewItem()">Guardar</button>
+                <button class="btn back-btn" onclick="hideAddItemForm()">Cancelar</button>
+            </div>
+
+            <div id="inventoryList" class="item-list"></div>
+        </div>
+
+        <!-- Lista de Compras -->
+        <div id="shoppingScreen" class="screen">
+            <button class="btn back-btn" onclick="showScreen('mainScreen')">← Volver</button>
+            <h1>🛒 Lista de Compras</h1>
+            <div id="shoppingList" class="item-list"></div>
+        </div>
+
+        <!-- Menú Calculadora -->
+        <div id="calculatorMenuScreen" class="screen">
+            <button class="btn back-btn" onclick="showScreen('mainScreen')">← Volver</button>
+            <h1>🧮 Calculadora de Precios</h1>
+            <button class="btn btn-primary" onclick="showScreen('calcPaperScreen')">
+                🧻 Papel
+            </button>
+            <button class="btn btn-info" onclick="showScreen('calcLiquidScreen')">
+                🧴 Líquidos
+            </button>
+            <button class="btn btn-warning" onclick="showScreen('calcWeightScreen')">
+                ⚖️ Peso
+            </button>
+        </div>
+
+        <!-- Calculadora Papel -->
+        <div id="calcPaperScreen" class="screen">
+            <button class="btn back-btn" onclick="showScreen('calculatorMenuScreen')">← Volver</button>
+            <h1>🧻 Comparar Papel</h1>
+            
+            <div id="paperOptions"></div>
+            
+            <button class="btn btn-primary" onclick="addPaperOption()">+ Agregar Opción</button>
+            <button class="btn btn-success" onclick="calculatePaper()" style="margin-top: 10px;">Calcular</button>
+            <div id="paperResult"></div>
+        </div>
+
+        <!-- Calculadora Líquidos -->
+        <div id="calcLiquidScreen" class="screen">
+            <button class="btn back-btn" onclick="showScreen('calculatorMenuScreen')">← Volver</button>
+            <h1>🧴 Comparar Líquidos</h1>
+            
+            <div id="liquidOptions"></div>
+            
+            <button class="btn btn-primary" onclick="addLiquidOption()">+ Agregar Opción</button>
+            <button class="btn btn-success" onclick="calculateLiquid()" style="margin-top: 10px;">Calcular</button>
+            <div id="liquidResult"></div>
+        </div>
+
+        <!-- Calculadora Peso -->
+        <div id="calcWeightScreen" class="screen">
+            <button class="btn back-btn" onclick="showScreen('calculatorMenuScreen')">← Volver</button>
+            <h1>⚖️ Comparar por Peso</h1>
+            
+            <div id="weightOptions"></div>
+            
+            <button class="btn btn-primary" onclick="addWeightOption()">+ Agregar Opción</button>
+            <button class="btn btn-success" onclick="calculateWeight()" style="margin-top: 10px;">Calcular</button>
+            <div id="weightResult"></div>
+        </div>
+
+        <!-- Registro de Tareas -->
+        <div id="tasksScreen" class="screen">
+            <button class="btn back-btn" onclick="showScreen('mainScreen')">← Volver</button>
+            <h1>📅 Registro de Tareas</h1>
+            
+            <button class="btn btn-info" onclick="reloadTasks()" style="margin-bottom: 10px;">🔄 Recargar desde Sheets</button>
+            <button class="btn btn-success" onclick="showAddTaskForm()">+ Agregar Tarea</button>
+            
+            <div id="addTaskForm" style="display:none; margin-top: 20px; background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                <h3>Nueva Tarea</h3>
+                <label>Nombre de la Tarea:</label>
+                <input type="text" id="newTaskName" placeholder="Ej: Arenero de gatos">
+                <label>Umbral Verde → Amarillo (días):</label>
+                <input type="number" id="newTaskThreshold1" placeholder="Ej: 3" value="3">
+                <label>Umbral Amarillo → Rojo (días):</label>
+                <input type="number" id="newTaskThreshold2" placeholder="Ej: 7" value="7">
+                <button class="btn btn-success" onclick="addNewTask()">Guardar</button>
+                <button class="btn back-btn" onclick="hideAddTaskForm()">Cancelar</button>
+            </div>
+
+            <div id="tasksList" class="item-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // URL de Google Apps Script
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxET044VsfSXP4828UOvS0PbfalqWUxKMB8Ihw5iwLLNj1XFQgSqiIN3j69aMUV5Ab6hA/exec';
+
+        // Datos
+        let inventory = [];
+        let tasks = [];
+        let isLoading = false;
+
+        // Contadores para calculadoras
+        let paperOptionCount = 0;
+        let liquidOptionCount = 0;
+        let weightOptionCount = 0;
+
+        // ============= GOOGLE SHEETS =============
+        
+        async function loadInventory() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            try {
+                const response = await fetch(`${APPS_SCRIPT_URL}?action=getInventory`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    inventory = result.data;
+                    console.log('✅ Inventario cargado:', inventory.length, 'artículos');
+                } else {
+                    console.error('Error:', result.error);
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        async function saveInventory() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            try {
+                const response = await fetch(`${APPS_SCRIPT_URL}?action=saveInventory`, {
+                    method: 'POST',
+                    body: JSON.stringify(inventory)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('✅ Inventario guardado');
+                } else {
+                    console.error('Error:', result.error);
+                    alert('Error al guardar');
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+                alert('Error de conexión');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        async function reloadInventory() {
+            await loadInventory();
+            renderInventory();
+            alert('✅ Inventario actualizado');
+        }
+
+        async function loadTasks() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            try {
+                const response = await fetch(`${APPS_SCRIPT_URL}?action=getTasks`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    tasks = result.data;
+                    console.log('✅ Tareas cargadas:', tasks.length, 'tareas');
+                } else {
+                    console.error('Error:', result.error);
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        async function saveTasks() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            try {
+                const response = await fetch(`${APPS_SCRIPT_URL}?action=saveTasks`, {
+                    method: 'POST',
+                    body: JSON.stringify(tasks)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('✅ Tareas guardadas');
+                } else {
+                    console.error('Error:', result.error);
+                    alert('Error al guardar');
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+                alert('Error de conexión');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        async function reloadTasks() {
+            await loadTasks();
+            renderTasks();
+            checkUrgentTasks();
+            alert('✅ Tareas actualizadas');
+        }
+
+        // ============= NAVEGACIÓN =============
+        
+        async function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            if (screenId === 'inventoryScreen') {
+                await loadInventory();
+                renderInventory();
+            } else if (screenId === 'shoppingScreen') {
+                await loadInventory();
+                renderShoppingList();
+            } else if (screenId === 'calcPaperScreen') {
+                initPaperCalculator();
+            } else if (screenId === 'calcLiquidScreen') {
+                initLiquidCalculator();
+            } else if (screenId === 'calcWeightScreen') {
+                initWeightCalculator();
+            } else if (screenId === 'tasksScreen') {
+                await loadTasks();
+                renderTasks();
+            } else if (screenId === 'mainScreen') {
+                await loadTasks();
+                checkUrgentTasks();
+            }
+        }
+
+        // ============= INVENTARIO =============
+        
+        function renderInventory() {
+            const list = document.getElementById('inventoryList');
+            list.innerHTML = '';
+            
+            if (inventory.length === 0) {
+                list.innerHTML = '<div class="item"><p style="text-align:center;">No hay artículos. ¡Agrega uno!</p></div>';
+                return;
+            }
+            
+            inventory.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <div class="item-header">
+                        <span class="item-name">${item.name}</span>
+                        <button class="small-btn btn-delete" onclick="deleteItem(${index})">🗑️</button>
+                    </div>
+                    <div>Cantidad: <strong>${item.quantity}</strong></div>
+                    <div>Umbral: <strong>${item.threshold}</strong></div>
+                    ${item.quantity <= item.threshold ? '<div class="low-stock">⚠️ Stock bajo</div>' : ''}
+                    <div class="item-controls">
+                        <div class="quantity-control">
+                            <button class="qty-btn" onclick="changeQuantity(${index}, -1)">-</button>
+                            <span class="qty-display">${item.quantity}</span>
+                            <button class="qty-btn" onclick="changeQuantity(${index}, 1)">+</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button class="small-btn btn-edit" onclick="editItem(${index})">✏️ Editar</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function changeQuantity(index, change) {
+            inventory[index].quantity = Math.max(0, inventory[index].quantity + change);
+            renderInventory();
+            saveInventory();
+        }
+
+        function deleteItem(index) {
+            if (confirm(`¿Eliminar "${inventory[index].name}"?`)) {
+                inventory.splice(index, 1);
+                renderInventory();
+                saveInventory();
+            }
+        }
+
+        function editItem(index) {
+            const item = inventory[index];
+            const newName = prompt("Nombre:", item.name);
+            if (newName) item.name = newName;
+            
+            const newThreshold = prompt("Umbral:", item.threshold);
+            if (newThreshold) item.threshold = parseInt(newThreshold);
+            
+            renderInventory();
+            saveInventory();
+        }
+
+        function showAddItemForm() {
+            document.getElementById('addItemForm').style.display = 'block';
+        }
+
+        function hideAddItemForm() {
+            document.getElementById('addItemForm').style.display = 'none';
+            document.getElementById('newItemName').value = '';
+            document.getElementById('newItemQty').value = '0';
+            document.getElementById('newItemThreshold').value = '1';
+        }
+
+        function addNewItem() {
+            const name = document.getElementById('newItemName').value.trim();
+            const qty = parseInt(document.getElementById('newItemQty').value) || 0;
+            const threshold = parseInt(document.getElementById('newItemThreshold').value) || 1;
+            
+            if (!name) {
+                alert('Ingresa un nombre');
+                return;
+            }
+            
+            inventory.push({ name, quantity: qty, threshold });
+            hideAddItemForm();
+            renderInventory();
+            saveInventory();
+        }
+
+        // ============= LISTA DE COMPRAS =============
+        
+        function renderShoppingList() {
+            const list = document.getElementById('shoppingList');
+            const lowStock = inventory.filter(item => item.quantity <= item.threshold);
+            
+            if (lowStock.length === 0) {
+                list.innerHTML = '<div class="item"><p style="text-align:center; color:#28a745; font-size:18px;">✅ Todo bien abastecido</p></div>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            lowStock.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <div class="item-header">
+                        <span class="item-name">${item.name}</span>
+                        <span class="low-stock">⚠️</span>
+                    </div>
+                    <div>Cantidad actual: <strong>${item.quantity}</strong></div>
+                    <div>Umbral: <strong>${item.threshold}</strong></div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // ============= CALCULADORAS =============
+        
+        function initPaperCalculator() {
+            paperOptionCount = 0;
+            document.getElementById('paperOptions').innerHTML = '';
+            document.getElementById('paperResult').innerHTML = '';
+            addPaperOption();
+            addPaperOption();
+        }
+
+        function addPaperOption() {
+            paperOptionCount++;
+            const container = document.getElementById('paperOptions');
+            const div = document.createElement('div');
+            div.className = 'calculator-input';
+            div.id = `paperOption${paperOptionCount}`;
+            div.innerHTML = `
+                <div class="option-header">
+                    <h3>Opción ${paperOptionCount}</h3>
+                    ${paperOptionCount > 2 ? `<button class="small-btn btn-remove" onclick="removePaperOption(${paperOptionCount})">🗑️</button>` : ''}
+                </div>
+                <label>Precio ($):</label>
+                <input type="number" id="paperPrice${paperOptionCount}" step="0.01">
+                <label>Rollos:</label>
+                <input type="number" id="paperRolls${paperOptionCount}">
+                <label>Hojas/rollo:</label>
+                <input type="number" id="paperSheets${paperOptionCount}">
+            `;
+            container.appendChild(div);
+        }
+
+        function removePaperOption(id) {
+            document.getElementById(`paperOption${id}`)?.remove();
+        }
+
+        function calculatePaper() {
+            const options = [];
+            
+            for (let i = 1; i <= paperOptionCount; i++) {
+                const price = parseFloat(document.getElementById(`paperPrice${i}`)?.value);
+                const rolls = parseInt(document.getElementById(`paperRolls${i}`)?.value);
+                const sheets = parseInt(document.getElementById(`paperSheets${i}`)?.value);
+                
+                if (price && rolls && sheets) {
+                    options.push({
+                        id: i,
+                        price,
+                        total: rolls * sheets,
+                        pricePerSheet: price / (rolls * sheets)
+                    });
+                }
+            }
+            
+            if (options.length < 2) {
+                alert('Completa al menos 2 opciones');
+                return;
+            }
+            
+            options.sort((a, b) => a.pricePerSheet - b.pricePerSheet);
+            
+            let html = '<div class="result-box"><h3>Resultados:</h3>';
+            options.forEach((opt, i) => {
+                html += `<p><strong>Opción ${opt.id}:</strong> ${opt.total} hojas - $${opt.pricePerSheet.toFixed(4)}/hoja</p>`;
+                if (i < options.length - 1) html += '<hr style="margin:10px 0; border:none; border-top:1px solid #ddd;">';
+            });
+            html += `<div class="winner">🏆 Opción ${options[0].id} es mejor</div></div>`;
+            
+            document.getElementById('paperResult').innerHTML = html;
+        }
+
+        function initLiquidCalculator() {
+            liquidOptionCount = 0;
+            document.getElementById('liquidOptions').innerHTML = '';
+            document.getElementById('liquidResult').innerHTML = '';
+            addLiquidOption();
+            addLiquidOption();
+        }
+
+        function addLiquidOption() {
+            liquidOptionCount++;
+            const container = document.getElementById('liquidOptions');
+            const div = document.createElement('div');
+            div.className = 'calculator-input';
+            div.id = `liquidOption${liquidOptionCount}`;
+            div.innerHTML = `
+                <div class="option-header">
+                    <h3>Opción ${liquidOptionCount}</h3>
+                    ${liquidOptionCount > 2 ? `<button class="small-btn btn-remove" onclick="removeLiquidOption(${liquidOptionCount})">🗑️</button>` : ''}
+                </div>
+                <label>Precio ($):</label>
+                <input type="number" id="liquidPrice${liquidOptionCount}" step="0.01">
+                <label>Litros:</label>
+                <input type="number" id="liquidVolume${liquidOptionCount}" step="0.01">
+            `;
+            container.appendChild(div);
+        }
+
+        function removeLiquidOption(id) {
+            document.getElementById(`liquidOption${id}`)?.remove();
+        }
+
+        function calculateLiquid() {
+            const options = [];
+            
+            for (let i = 1; i <= liquidOptionCount; i++) {
+                const price = parseFloat(document.getElementById(`liquidPrice${i}`)?.value);
+                const volume = parseFloat(document.getElementById(`liquidVolume${i}`)?.value);
+                
+                if (price && volume) {
+                    options.push({
+                        id: i,
+                        price,
+                        volume,
+                        pricePerLiter: price / volume
+                    });
+                }
+            }
+            
+            if (options.length < 2) {
+                alert('Completa al menos 2 opciones');
+                return;
+            }
+            
+            options.sort((a, b) => a.pricePerLiter - b.pricePerLiter);
+            
+            let html = '<div class="result-box"><h3>Resultados:</h3>';
+            options.forEach((opt, i) => {
+                html += `<p><strong>Opción ${opt.id}:</strong> ${opt.volume} L - ${opt.pricePerLiter.toFixed(2)}/L</p>`;
+                if (i < options.length - 1) html += '<hr style="margin:10px 0; border:none; border-top:1px solid #ddd;">';
+            });
+            html += `<div class="winner">🏆 Opción ${options[0].id} es mejor</div></div>`;
+            
+            document.getElementById('liquidResult').innerHTML = html;
+        }
+
+        function initWeightCalculator() {
+            weightOptionCount = 0;
+            document.getElementById('weightOptions').innerHTML = '';
+            document.getElementById('weightResult').innerHTML = '';
+            addWeightOption();
+            addWeightOption();
+        }
+
+        function addWeightOption() {
+            weightOptionCount++;
+            const container = document.getElementById('weightOptions');
+            const div = document.createElement('div');
+            div.className = 'calculator-input';
+            div.id = `weightOption${weightOptionCount}`;
+            div.innerHTML = `
+                <div class="option-header">
+                    <h3>Opción ${weightOptionCount}</h3>
+                    ${weightOptionCount > 2 ? `<button class="small-btn btn-remove" onclick="removeWeightOption(${weightOptionCount})">🗑️</button>` : ''}
+                </div>
+                <label>Precio ($):</label>
+                <input type="number" id="weightPrice${weightOptionCount}" step="0.01">
+                <label>Kilogramos:</label>
+                <input type="number" id="weightKg${weightOptionCount}" step="0.01">
+            `;
+            container.appendChild(div);
+        }
+
+        function removeWeightOption(id) {
+            document.getElementById(`weightOption${id}`)?.remove();
+        }
+
+        function calculateWeight() {
+            const options = [];
+            
+            for (let i = 1; i <= weightOptionCount; i++) {
+                const price = parseFloat(document.getElementById(`weightPrice${i}`)?.value);
+                const kg = parseFloat(document.getElementById(`weightKg${i}`)?.value);
+                
+                if (price && kg) {
+                    options.push({
+                        id: i,
+                        price,
+                        kg,
+                        pricePerKg: price / kg
+                    });
+                }
+            }
+            
+            if (options.length < 2) {
+                alert('Completa al menos 2 opciones');
+                return;
+            }
+            
+            options.sort((a, b) => a.pricePerKg - b.pricePerKg);
+            
+            let html = '<div class="result-box"><h3>Resultados:</h3>';
+            options.forEach((opt, i) => {
+                html += `<p><strong>Opción ${opt.id}:</strong> ${opt.kg} kg - ${opt.pricePerKg.toFixed(2)}/kg</p>`;
+                if (i < options.length - 1) html += '<hr style="margin:10px 0; border:none; border-top:1px solid #ddd;">';
+            });
+            html += `<div class="winner">🏆 Opción ${options[0].id} es mejor</div></div>`;
+            
+            document.getElementById('weightResult').innerHTML = html;
+        }
+
+        // ============= TAREAS =============
+        
+        function getDaysSince(dateString) {
+            const lastDate = new Date(dateString);
+            const today = new Date();
+            const diffTime = today - lastDate;
+            return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function getTaskStatus(days, threshold1, threshold2) {
+            if (days <= threshold1) return 'green';
+            if (days <= threshold2) return 'yellow';
+            return 'red';
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('tasksList');
+            list.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                list.innerHTML = '<div class="item"><p style="text-align:center;">No hay tareas. ¡Agrega una!</p></div>';
+                return;
+            }
+            
+            tasks.forEach((task, index) => {
+                const days = getDaysSince(task.lastDone);
+                const status = getTaskStatus(days, task.threshold1, task.threshold2);
+                const statusText = status === 'green' ? '🟢 Al día' : status === 'yellow' ? '🟡 Pronto' : '🔴 ¡Urgente!';
+                
+                const lastDate = new Date(task.lastDone);
+                const formatted = lastDate.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+                
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <div class="item-header">
+                        <span class="item-name">${task.name}</span>
+                        <button class="small-btn btn-delete" onclick="deleteTask(${index})">🗑️</button>
+                    </div>
+                    <div class="days-counter">Hace ${days} día${days !== 1 ? 's' : ''}</div>
+                    <div class="task-status status-${status}">${statusText}</div>
+                    <div class="task-info">Última vez: ${formatted}</div>
+                    <div class="task-info">Umbrales: ${task.threshold1} días (🟢→🟡) / ${task.threshold2} días (🟡→🔴)</div>
+                    <button class="btn task-done-btn" onclick="markTaskDone(${index})">✓ Lo hice hoy</button>
+                    <button class="small-btn btn-edit" style="margin-top:10px;" onclick="editTask(${index})">✏️ Editar</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function markTaskDone(index) {
+            const today = new Date().toISOString().split('T')[0];
+            tasks[index].lastDone = today;
+            renderTasks();
+            saveTasks();
+            checkUrgentTasks();
+        }
+
+        function deleteTask(index) {
+            if (confirm(`¿Eliminar "${tasks[index].name}"?`)) {
+                tasks.splice(index, 1);
+                renderTasks();
+                saveTasks();
+                checkUrgentTasks();
+            }
+        }
+
+        function editTask(index) {
+            const task = tasks[index];
+            const newName = prompt("Nombre:", task.name);
+            if (newName) task.name = newName;
+            
+            const newT1 = prompt("Umbral Verde→Amarillo:", task.threshold1);
+            if (newT1) task.threshold1 = parseInt(newT1);
+            
+            const newT2 = prompt("Umbral Amarillo→Rojo:", task.threshold2);
+            if (newT2) task.threshold2 = parseInt(newT2);
+            
+            renderTasks();
+            saveTasks();
+            checkUrgentTasks();
+        }
+
+        function showAddTaskForm() {
+            document.getElementById('addTaskForm').style.display = 'block';
+        }
+
+        function hideAddTaskForm() {
+            document.getElementById('addTaskForm').style.display = 'none';
+            document.getElementById('newTaskName').value = '';
+            document.getElementById('newTaskThreshold1').value = '3';
+            document.getElementById('newTaskThreshold2').value = '7';
+        }
+
+        function addNewTask() {
+            const name = document.getElementById('newTaskName').value.trim();
+            const threshold1 = parseInt(document.getElementById('newTaskThreshold1').value) || 3;
+            const threshold2 = parseInt(document.getElementById('newTaskThreshold2').value) || 7;
+            
+            if (!name) {
+                alert('Ingresa un nombre');
+                return;
+            }
+            
+            if (threshold1 >= threshold2) {
+                alert('El primer umbral debe ser menor');
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            tasks.push({ name, lastDone: today, threshold1, threshold2 });
+            hideAddTaskForm();
+            renderTasks();
+            saveTasks();
+            checkUrgentTasks();
+        }
+
+        function checkUrgentTasks() {
+            const urgent = tasks.filter(task => getDaysSince(task.lastDone) > task.threshold2);
+            const banner = document.getElementById('alertBanner');
+            
+            if (urgent.length > 0) {
+                let list = urgent.map(t => `• ${t.name} (hace ${getDaysSince(t.lastDone)} días)`).join('<br>');
+                banner.innerHTML = `
+                    <div class="alert-banner">
+                        <h2>🔴 ¡Tareas Urgentes!</h2>
+                        <p>Tienes ${urgent.length} tarea${urgent.length > 1 ? 's' : ''} urgente${urgent.length > 1 ? 's' : ''}:</p>
+                        <p style="margin-top:10px;">${list}</p>
+                        <button onclick="showScreen('tasksScreen')">Ver Tareas</button>
+                    </div>
+                `;
+                banner.style.display = 'block';
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+
+        // ============= INICIALIZACIÓN =============
+        
+        async function initApp() {
+            await loadInventory();
+            await loadTasks();
+            checkUrgentTasks();
+        }
+        
+        initApp();
+    </script>
+</body>
+</html>
